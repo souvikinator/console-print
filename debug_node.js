@@ -101,20 +101,50 @@ init.prototype.callGrp=function(name){
     }
 }
 
+init.prototype.count=function(print=''){
+    if(print.length>0){
+        console.count(print);
+    }else{
+        throw('ERR: count function requires an argument')
+    }
+}
+
+init.prototype.countReset=function(print=''){
+    if(print.length>0){
+        console.countReset(print);
+    }else{
+        throw('ERR: countReset function requires an argument')
+    }
+}
+
+
 /*test code*/
+
+/*
+* group , logging and styling snippet
+*/
+
 var d=new init();
-d.debug('hello',{
-    style:{
-        color:'Cyan',
-        underline:true,
-        bold:true
-    },group:'grp-1',
-});
-d.debug({'hello':'hi'},{
-    style:{
-        color:'Yellow',
-        background:'Black',
-        bold:true
-    },group:'grp-1'
-});
-d.callGrp('grp-1');
+// d.debug('hello',{
+//     style:{
+//         color:'Cyan',
+//         underline:true,
+//         bold:true
+//     },group:'grp-1',
+// });
+// d.debug({'hello':'hi'},{
+//     style:{
+//         color:'Yellow',
+//         background:'Black',
+//         bold:true
+//     },group:'grp-1'
+// });
+// d.callGrp('grp-1');
+/* 
+* count and count reset snippet
+*/
+// d.count('hello');
+// d.count('hello');
+// d.count('hello');
+// d.countReset('hello');
+// d.count('hello');
