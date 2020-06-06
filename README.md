@@ -1,4 +1,4 @@
-#  👾 Simple-Debugger
+#  👾 Console-Print
 
 This is a very simple node module and probably a replacement for console.log and stuff 😅. Read more to know the details cuz ya know I need to make my README file as long as possible 😏
 
@@ -15,6 +15,7 @@ Lets you use do following:
   * _Counting_
   * _Table_
   * _Output Styling_
+  * _Timer_
 
 ## 🔧 Working 
 
