@@ -15,24 +15,24 @@ var init=function(){
     this.groups={};
     this.style_props={
         colors:{
-            Black: '\u001b[30m',
-            Red: '\u001b[31m',
-            Green: '\u001b[32m',
-            Yellow: '\u001b[33m',
-            Blue: '\u001b[34m',
-            Magenta: '\u001b[35m',
-            Cyan: '\u001b[36m',
-            White: '\u001b[37m',
+            black: '\u001b[30m',
+            red: '\u001b[31m',
+            green: '\u001b[32m',
+            yellow: '\u001b[33m',
+            blue: '\u001b[34m',
+            magenta: '\u001b[35m',
+            cyan: '\u001b[36m',
+            white: '\u001b[37m',
         },
         backgrounds:{
-            Black: '\u001b[40m',
-            Red: '\u001b[41m',
-            Green: '\u001b[42m',
-            Yellow: '\u001b[43m',
-            Blue: '\u001b[44m',
-            Magenta: '\u001b[45m',
-            Cyan: '\u001b[46m',
-            White: '\u001b[47m',
+            black: '\u001b[40m',
+            red: '\u001b[41m',
+            green: '\u001b[42m',
+            yellow: '\u001b[43m',
+            blue: '\u001b[44m',
+            magenta: '\u001b[45m',
+            cyan: '\u001b[46m',
+            white: '\u001b[47m',
         },
         bold:'\u001b[1m',
         underline:'\u001b[4m',
@@ -41,14 +41,22 @@ var init=function(){
     }
 }
 
-init.prototype.debug=function(print='',options){
+init.prototype.print=function(print='',options){
     options=Object.assign({
-        style:{color:'',background:'',underline:false,bold:false,reverse:false},
+        color:'',
+        background:'',
+        underline:false,
+        bold:false,
+        reverse:false,
         table:false,
         group:'',
         count:false
     },options);
-    this.style=options.style||'';
+    this.color=options.color||'';
+    this.background=options.background,
+    this.underline=options.underline,
+    this.bold=options.bold,
+    this.reverse=options.reverse,
     this.table=options.table||false;
     this.group=options.group||'';
     this.output=print;
@@ -59,15 +67,15 @@ init.prototype.debug=function(print='',options){
         this.is_grouped=false;
     }
 
-    if(this.style_props.colors.hasOwnProperty(options.style.color)){
-        this.output=this.style_props.colors[options.style.color]+this.output;
-    }if(this.style_props.backgrounds.hasOwnProperty(options.style.background)){
-        this.output=this.style_props.backgrounds[options.style.background]+this.output;
-    }if(options.style.bold){
+    if(this.style_props.colors.hasOwnProperty(options.color.toLowerCase())){
+        this.output=this.style_props.colors[options.color.toLowerCase()]+this.output;
+    }if(this.style_props.backgrounds.hasOwnProperty(options.background.toLowerCase())){
+        this.output=this.style_props.backgrounds[options.background.toLowerCase()]+this.output;
+    }if(options.bold){
         this.output=this.style_props.bold+this.output;
-    }if(options.style.underline){
+    }if(options.underline){
         this.output=this.style_props.underline+this.output;
-    }if(options.style.reverse){
+    }if(options.reverse){
         this.output=this.style_props.reverse+this.output;
     }
 
@@ -79,15 +87,15 @@ init.prototype.debug=function(print='',options){
             this.groups[options.group].push({log:this.output});
     }
     this.output+=this.style_props.reset;
+    //check if grouped or not
     if(!this.is_grouped){
-        console.log(this.output);
+            console.log(this.output);
     }
-
 }
 
 init.prototype.callGrp=function(name){
     if(this.groups.hasOwnProperty(name)){
-        console.log(`\u001b[40;1m\u001b[33;1m group:\u001b[36m${name} \u001b[0m`);
+        console.log(`\u001b[33m ${name} :\u001b[0m`);
         this.groups[name].map(e=>{
             if(e.hasOwnProperty('log')){
                 console.log(`\t${e.log}\u001b[0m`)
@@ -117,34 +125,21 @@ init.prototype.countReset=function(print=''){
     }
 }
 
+init.prototype.timerOn=(label='')=>{
+    if(label.length>0){
+        console.time(label);
+    }else{
+        throw(`invalid lable passed as argument ${label}`);
+    }
+}
 
-/*test code*/
+init.prototype.timerOff=(lable='')=>{
+    if(label.length>0){
+        console.timeEnd(label);
+    }else{
+        throw(`invalid lable passed as argument ${label}`);
+    }
+}
 
-/*
-* group , logging and styling snippet
-*/
 
-var d=new init();
-// d.debug('hello',{
-//     style:{
-//         color:'Cyan',
-//         underline:true,
-//         bold:true
-//     },group:'grp-1',
-// });
-// d.debug({'hello':'hi'},{
-//     style:{
-//         color:'Yellow',
-//         background:'Black',
-//         bold:true
-//     },group:'grp-1'
-// });
-// d.callGrp('grp-1');
-/* 
-* count and count reset snippet
-*/
-// d.count('hello');
-// d.count('hello');
-// d.count('hello');
-// d.countReset('hello');
-// d.count('hello');
+
