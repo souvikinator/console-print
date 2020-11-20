@@ -1,10 +1,7 @@
 #  👾 Console-Print
 
-This is a very simple node module and probably a replacement for console.log and stuff 😅. Read more to know the details cuz ya know I need to make my README file as long as possible 😏
+Polyfill for most of the `console` stuff in js
 
-##  💩 The Problem 
-
-While console logging in the browser we can apply style to output and can do other stuff like logging, grouping, table of the output which is does not happens in the node Js as it gives output either in BASH or MacOs terminal or CMD depending on the OS you use. This limitation lead to this node module.
 
 ## 💥 Features
 
