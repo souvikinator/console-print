@@ -1,0 +1,140 @@
+version: '3.8'
+
+x-common-variables: &common-variables
+  DB_HOST: db
+  DB_PORT: 5432
+  DB_USERNAME: app
+  DB_PASSWORD: ${DB_PASSWORD:-1234}
+  DB_NAME: zerospace_local
+  RABBITMQ_URL: amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASS:-adminpassword}@rabbitmq:5672
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy_service
+    depends_on:
+      - api
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - reverse_proxy
+    environment:
+      - DOMAIN=api.seoautolink.com
+
+  db:
+    image: postgres:14-alpine
+    container_name: db_service
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d zerospace_local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-1234}
+    volumes:
+      - ./docker-scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - application
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq_service
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-adminpassword}
+    networks:
+      - application
+
+  api:
+    container_name: api_service
+    build:
+      context: ./app
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migration:
+        condition: service_completed_successfully
+    environment:
+      <<: *common-variables
+    networks:
+      - reverse_proxy
+      - application
+
+  migration:
+    container_name: migration_onetimer
+    build:
+      context: ./app
+      dockerfile: migration.Dockerfile
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      <<: *common-variables
+    networks:
+      - application
+    deploy:
+      restart_policy:
+        condition: none
+    labels:
+      - "com.zerospace.description=One-time migration container"
+
+  crawler_worker:
+    container_name: crawler_worker_service
+    build:
+      context: ./crawler_worker
+    restart: always
+    depends_on:
+      api:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      <<: *common-variables
+    networks:
+      - application
+
+  ai_worker:
+    container_name: ai_worker_service
+    build:
+      context: ./ai_worker
+    restart: always
+    depends_on:
+      api:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      <<: *common-variables
+    networks:
+      - application
+
+volumes:
+  data:
+  caddy_data:    # Persistent volume for certificates
+  caddy_config:  # Persistent volume for Caddy configuration
+
+networks:
+  application:
+  reverse_proxy:
