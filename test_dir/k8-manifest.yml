@@ -1,0 +1,237 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yml -o kubernetes-manifest.yaml
+    kompose.version: 1.35.0 (9532ceef3)
+  labels:
+    io.kompose.service: anythink-backend
+  name: anythink-backend
+spec:
+  ports:
+    - name: "3000"
+      port: 3000
+      targetPort: 3000
+  selector:
+    io.kompose.service: anythink-backend
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yml -o kubernetes-manifest.yaml
+    kompose.version: 1.35.0 (9532ceef3)
+  labels:
+    io.kompose.service: anythink-frontend
+  name: anythink-frontend
+spec:
+  ports:
+    - name: "3001"
+      port: 3001
+      targetPort: 3001
+  selector:
+    io.kompose.service: anythink-frontend
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yml -o kubernetes-manifest.yaml
+    kompose.version: 1.35.0 (9532ceef3)
+  labels:
+    io.kompose.service: mongodb
+  name: mongodb
+spec:
+  ports:
+    - name: "27017"
+      port: 27017
+      targetPort: 27017
+  selector:
+    io.kompose.service: mongodb
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yml -o kubernetes-manifest.yaml
+    kompose.version: 1.35.0 (9532ceef3)
+  labels:
+    io.kompose.service: anythink-backend
+  name: anythink-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: anythink-backend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml -o kubernetes-manifest.yaml
+        kompose.version: 1.35.0 (9532ceef3)
+      labels:
+        io.kompose.service: anythink-backend
+    spec:
+      containers:
+        - args:
+            - sh
+            - -c
+            - cd backend && yarn install && /wait-for-it.sh mongodb:27017 -q -t 60 && yarn dev
+          env:
+            - name: MONGODB_URI
+              value: mongodb://mongodb:27017
+            - name: NODE_ENV
+              value: development
+            - name: PORT
+              value: "3000"
+          image: anythink-backend
+          name: anythink-backend
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /usr/src/backend/node_modules
+              name: anythink-backend-claim1
+          workingDir: /usr/src
+      restartPolicy: Always
+      volumes:
+        - name: anythink-backend-claim1
+          persistentVolumeClaim:
+            claimName: anythink-backend-claim1
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    io.kompose.service: anythink-backend-claim1
+  name: anythink-backend-claim1
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yml -o kubernetes-manifest.yaml
+    kompose.version: 1.35.0 (9532ceef3)
+  labels:
+    io.kompose.service: anythink-frontend
+  name: anythink-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: anythink-frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml -o kubernetes-manifest.yaml
+        kompose.version: 1.35.0 (9532ceef3)
+      labels:
+        io.kompose.service: anythink-frontend
+    spec:
+      containers:
+        - args:
+            - sh
+            - -c
+            - cd frontend && yarn install && yarn start
+          env:
+            - name: NODE_ENV
+              value: development
+            - name: PORT
+              value: "3001"
+          image: anythink-frontend
+          name: anythink-frontend
+          ports:
+            - containerPort: 3001
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /usr/src/frontend/node_modules
+              name: anythink-frontend-claim1
+          workingDir: /usr/src
+      restartPolicy: Always
+      volumes:
+        - name: anythink-frontend-claim1
+          persistentVolumeClaim:
+            claimName: anythink-frontend-claim1
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    io.kompose.service: anythink-frontend-claim1
+  name: anythink-frontend-claim1
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yml -o kubernetes-manifest.yaml
+    kompose.version: 1.35.0 (9532ceef3)
+  labels:
+    io.kompose.service: mongodb
+  name: mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: mongodb
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml -o kubernetes-manifest.yaml
+        kompose.version: 1.35.0 (9532ceef3)
+      labels:
+        io.kompose.service: mongodb
+    spec:
+      containers:
+        - image: mongo
+          name: mongodb
+          ports:
+            - containerPort: 27017
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /data/db
+              name: mongodb-claim0
+      restartPolicy: Always
+      volumes:
+        - name: mongodb-claim0
+          persistentVolumeClaim:
+            claimName: mongodb-claim0
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    io.kompose.service: mongodb-claim0
+  name: mongodb-claim0
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
