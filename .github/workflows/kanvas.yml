@@ -44,4 +44,4 @@ jobs:
           mesheryToken: ${{ secrets.MESHERY_TOKEN }}
           prNumber: ${{ env.PULL_NO }}
           application_type: Kubernetes Manifest
-          filePath: ${{ inputs.fileName == '' && 'helm-chart.tar.gz' || inputs.fileName }}
+          filePath: ${{ inputs.fileName == '' && 'meshery-design.yml' || inputs.fileName }}
