@@ -44,4 +44,4 @@ jobs:
           mesheryToken: ${{ secrets.MESHERY_TOKEN }}
           prNumber: ${{ env.PULL_NO }}
           application_type: Kubernetes Manifest
-          filePath: ${{ inputs.fileName == '' && 'docker-compose.yml' || inputs.fileName }}
+          filePath: ${{ inputs.fileName == '' && 'nginx-devportal-1.3.1.tgz' || inputs.fileName }}
